@@ -1,0 +1,15 @@
+{
+    "db": {
+        "host": "10.10.139.5",
+        "port": "3306",
+        "database": "aliyun_assist",
+        "username": "root",
+        "password": "123456"
+    },
+    "redis": {
+        "host": "127.0.0.1",
+        "port": "6379",
+        "database": "0",
+        "password": ""
+    }
+}
