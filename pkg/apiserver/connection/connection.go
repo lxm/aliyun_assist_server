@@ -46,6 +46,7 @@ func NotifyServer(c *gin.Context) {
 					if !ok {
 						break
 					}
+					//TODO message write lock
 					ws.WriteMessage(websocket.TextMessage, []byte(msg.Payload))
 					logrus.Infof("msg:%v", msg)
 				case <-wsQuit:

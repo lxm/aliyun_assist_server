@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -122,14 +123,15 @@ func (task *Task) GetCommand() *Command {
 func (task *Task) ParseRunTaskInfo() map[string]interface{} {
 	data := make(map[string]interface{})
 	data["task"] = map[string]interface{}{
-		"taskID":           task.ID,
-		"commandId":        task.CommandID,
+		"taskID":           fmt.Sprintf("%d", task.ID),
+		"commandId":        fmt.Sprintf("%d", task.CommandID),
 		"commandContent":   task.GetCommand().CommandContent,
-		"timeOut":          60,
+		"timeOut":          "60",
 		"workingDirectory": "/tmp",
 		"enableParameter":  false,
 		"args":             "",
 		"cron":             "",
+		"type":             "RunShellScript",
 	}
 	data["output"] = map[string]interface{}{
 		"sendStart": true,

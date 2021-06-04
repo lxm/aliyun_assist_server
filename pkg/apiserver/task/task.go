@@ -28,8 +28,14 @@ func List(c *gin.Context) {
 	logrus.Infof("client list task with reason:%s", reason)
 	c.JSON(200, taskList)
 }
-func Running(c *gin.Context) {}
-func Finish(c *gin.Context)  {}
+func Running(c *gin.Context) {
+	rawData, _ := c.GetRawData()
+	logrus.Infof("Reg RawData:%v", string(rawData))
+}
+func Finish(c *gin.Context) {
+	rawData, _ := c.GetRawData()
+	logrus.Infof("Reg RawData:%v", string(rawData))
+}
 func Stopped(c *gin.Context) {}
 func Timeout(c *gin.Context) {}
 func Error(c *gin.Context)   {}
