@@ -18,12 +18,21 @@ const (
 	TASK_OUTPUT_STASH = "task:output:"
 )
 
+const (
+	TASK_STATUS_RUNNING  = "Running"
+	TASK_STATUS_FINISHED = "Finished"
+	TASK_STATUS_FAIELD   = "Failed"
+	TASK_STATUS_STOPPED  = "Stopped"
+)
+
 type Task struct {
 	ID         int            `json:"id" gorm:"primarykey"`
 	UUID       string         `json:"task_id" gorm:"type:varchar(100);index"`
 	BatchID    string         `json:"batch_id" grom:"varchar(100);index"`
 	CommandID  int            `json:"command_id" gorm:"type:int"`
+	InstanceID string         `json:"instance_id" gorm:"type:varchar(100);index"`
 	Output     string         `json:"output" gorm:"type:text"`
+	Status     string         `json:"string" gorm:"type:varchar(20)"`
 	TaskOption TaskOption     `gorm:"type:varchar(100);embedded"`
 	CreatedAt  time.Time      `json:"created_at"`
 	UpdatedAt  time.Time      `json:"updated_at"`
@@ -31,12 +40,11 @@ type Task struct {
 }
 
 type TaskOption struct {
-	InstanceIDs string          `json:"instance_id"`
-	RepeatMode  string          `json:"repeat_mode" gorm:"type:varchar(100)"`
-	Timed       bool            `json:"timed" gorm:"type:tinyint"`
-	Frequency   string          `json:"frequency" gorm:"type:varchar(128)"`
-	Parameters  json.RawMessage `json:"parameters" gorm:"type:varchar(1024)"`
-	Username    string          `json:"username" gorm:"type:varchar(100)"`
+	RepeatMode string          `json:"repeat_mode" gorm:"type:varchar(100)"`
+	Timed      bool            `json:"timed" gorm:"type:tinyint"`
+	Frequency  string          `json:"frequency" gorm:"type:varchar(128)"`
+	Parameters json.RawMessage `json:"parameters" gorm:"type:varchar(1024)"`
+	Username   string          `json:"username" gorm:"type:varchar(100)"`
 }
 
 type RunTaskInfo struct {
@@ -115,9 +123,10 @@ func GetTaskByUUID(taskUUID string) *Task {
 	return &task
 }
 
-func CreateTask(commandID int, to TaskOption) *Task {
+func CreateTask(commandID int, instanceId string, to TaskOption) *Task {
 	var task Task
 	task.CommandID = commandID
+	task.InstanceID = instanceId
 	task.TaskOption = to
 	task.GenTaskUUID()
 

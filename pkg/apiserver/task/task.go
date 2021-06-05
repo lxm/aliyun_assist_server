@@ -75,6 +75,44 @@ func Finish(c *gin.Context) {
 	}
 	logrus.Infof("Task Finish:%v\n%v", string(rawData), c.Request.Header)
 }
-func Stopped(c *gin.Context) {}
-func Timeout(c *gin.Context) {}
-func Error(c *gin.Context)   {}
+func Stopped(c *gin.Context) {
+	taskID := c.Query("taskId")
+	task := model.GetTaskByUUID(taskID)
+
+	if task == nil {
+		logrus.WithFields(logrus.Fields{
+			"Module": "task",
+			"Func":   "Finish",
+		}).Errorf("Get task failed by taskId:%s", taskID)
+		c.AbortWithStatus(200)
+		return
+	}
+	task.Status = model.TASK_STATUS_STOPPED
+	model.GetDB().Save(task)
+}
+func Timeout(c *gin.Context) {
+	taskID := c.Query("taskId")
+	task := model.GetTaskByUUID(taskID)
+
+	if task == nil {
+		logrus.WithFields(logrus.Fields{
+			"Module": "task",
+			"Func":   "Finish",
+		}).Errorf("Get task failed by taskId:%s", taskID)
+		c.AbortWithStatus(200)
+		return
+	}
+}
+func Error(c *gin.Context) {
+	taskID := c.Query("taskId")
+	task := model.GetTaskByUUID(taskID)
+
+	if task == nil {
+		logrus.WithFields(logrus.Fields{
+			"Module": "task",
+			"Func":   "Finish",
+		}).Errorf("Get task failed by taskId:%s", taskID)
+		c.AbortWithStatus(200)
+		return
+	}
+}

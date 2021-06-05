@@ -3,7 +3,6 @@ package command
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lxm/aliyun_assist_server/pkg/model"
@@ -11,8 +10,9 @@ import (
 )
 
 type RunCommandReq struct {
-	Command model.Command `json:"command"`
-	Options struct {
+	Command     model.Command `json:"command"`
+	InstanceIDs []string      `json:"instance_ids"`
+	Options     struct {
 		model.TaskOption
 		KeepCommand     bool   `json:"keep_command"`
 		ContentEncoding string `json:"content_encoding"`
@@ -37,13 +37,12 @@ func RunCommand(c *gin.Context) {
 		return
 	}
 	// invokeId := util.RandStringRunes(32)
-	task := model.CreateTask(runCmdReq.Command.ID, runCmdReq.Options.TaskOption)
 
 	redisClient := redisclient.GetClient()
 
 	ctx := context.Background()
-	instanceIDList := strings.Split(runCmdReq.Options.InstanceIDs, ",")
-	for _, instanceID := range instanceIDList {
+	for _, instanceID := range runCmdReq.InstanceIDs {
+		task := model.CreateTask(runCmdReq.Command.ID, instanceID, runCmdReq.Options.TaskOption)
 		channel := "notify_server:" + instanceID
 		msg := fmt.Sprintf("kick_vm task run %s", task.UUID)
 		redisClient.Publish(ctx, channel, msg)
