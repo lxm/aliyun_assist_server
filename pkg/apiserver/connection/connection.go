@@ -3,6 +3,7 @@ package connection
 import (
 	"context"
 	"net/http"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -32,29 +33,33 @@ func NotifyServer(c *gin.Context) {
 		},
 	}
 	ws, err := conn.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		logrus.Errorf("NotifyServer Upgrade err:%v", err)
+	}
 	defer ws.Close()
 	wsQuit := make(chan int)
-	for {
-		redisClient := redisclient.GetClient()
-		go func() {
-			ctx := context.Background()
-			pubsub := redisClient.Subscribe(ctx, "notify_server:"+instanceID)
-			defer pubsub.Close()
-			for {
-				select {
-				case msg, ok := <-pubsub.Channel():
-					if !ok {
-						break
-					}
-					//TODO message write lock
-					ws.WriteMessage(websocket.TextMessage, []byte(msg.Payload))
-					logrus.Infof("msg:%v", msg)
-				case <-wsQuit:
-					logrus.Infof("ws serve end")
-					break
-				}
+	redisClient := redisclient.GetClient()
+	var writeMu sync.Mutex
+	//Process msg
+	go func() {
+		ctx := context.Background()
+		pubsub := redisClient.Subscribe(ctx, "notify_server:"+instanceID)
+		defer pubsub.Close()
+	msgProcess:
+		for msg := range pubsub.Channel() {
+			logrus.Infof("receive msg:%v", msg)
+			select {
+			case <-wsQuit:
+				break msgProcess
+			default:
+				writeMu.Lock()
+				ws.WriteMessage(websocket.TextMessage, []byte(msg.Payload))
+				writeMu.Unlock()
+				logrus.Infof("msg:%v", msg)
 			}
-		}()
+		}
+	}()
+	for {
 		mt, message, err := ws.ReadMessage()
 		if err != nil {
 			break

@@ -45,7 +45,7 @@ func RunCommand(c *gin.Context) {
 	instanceIDList := strings.Split(runCmdReq.Options.InstanceIDs, ",")
 	for _, instanceID := range instanceIDList {
 		channel := "notify_server:" + instanceID
-		msg := fmt.Sprintf("kick_vm task run %d", task.ID)
+		msg := fmt.Sprintf("kick_vm task run %s", task.UUID)
 		redisClient.Publish(ctx, channel, msg)
 	}
 

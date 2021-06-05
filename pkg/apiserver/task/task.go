@@ -19,7 +19,7 @@ func List(c *gin.Context) {
 	taskID := c.Query("taskId")
 	logrus.Infof("taskId:%v", taskID)
 	if reason == "kickoff" {
-		task := model.GetTaskByID(taskID)
+		task := model.GetTaskByUUID(taskID)
 		if task != nil {
 			taskList.RunTasks = append(taskList.RunTasks, task.ParseRunTaskInfo())
 		}
@@ -29,12 +29,51 @@ func List(c *gin.Context) {
 	c.JSON(200, taskList)
 }
 func Running(c *gin.Context) {
+	taskID := c.Query("taskId")
+	task := model.GetTaskByUUID(taskID)
+	if task == nil {
+		logrus.WithFields(logrus.Fields{
+			"Module": "task",
+			"Func":   "Finish",
+		}).Errorf("Get task failed by taskId:%s", taskID)
+		c.AbortWithStatus(200)
+		return
+	}
+
 	rawData, _ := c.GetRawData()
-	logrus.Infof("Reg RawData:%v", string(rawData))
+	if len(rawData) > 0 {
+		task.StashOutput(string(rawData))
+	}
+	c.AbortWithStatus(201)
 }
 func Finish(c *gin.Context) {
+	//  "taskId" => "98",
+	//  "start" => "1622876670110",
+	//  "end" => "1622876679562",
+	//  "exitCode" => "0",
+	//  "dropped" => "0",
+	taskID := c.Query("taskId")
+	task := model.GetTaskByUUID(taskID)
+
+	// start := c.Query("start")
+	// end := c.Query("end")
+	// exitCode := c.Query("exitCode")
+	// dropped := c.Query("dropped")
+	if task == nil {
+		logrus.WithFields(logrus.Fields{
+			"Module": "task",
+			"Func":   "Finish",
+		}).Errorf("Get task failed by taskId:%s", taskID)
+		c.AbortWithStatus(200)
+		return
+	}
+
 	rawData, _ := c.GetRawData()
-	logrus.Infof("Reg RawData:%v", string(rawData))
+	if len(rawData) > 0 {
+		task.StashOutput(string(rawData))
+		task.DumpOutput()
+	}
+	logrus.Infof("Task Finish:%v\n%v", string(rawData), c.Request.Header)
 }
 func Stopped(c *gin.Context) {}
 func Timeout(c *gin.Context) {}

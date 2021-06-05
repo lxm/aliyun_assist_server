@@ -55,5 +55,5 @@ func GetDB() *gorm.DB {
 }
 
 func Migrate() {
-	db.AutoMigrate(&RegisterInfo{}, &RunTaskInfo{}, &Command{}, &Task{})
+	db.AutoMigrate(&RegisterInfo{}, &Command{}, &Task{})
 }

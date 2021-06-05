@@ -1,19 +1,29 @@
 package model
 
 import (
+	"context"
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"strings"
 	"time"
 
+	"github.com/lxm/aliyun_assist_server/pkg/redisclient"
+	"github.com/lxm/aliyun_assist_server/pkg/util"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
+const (
+	TASK_OUTPUT_STASH = "task:output:"
+)
+
 type Task struct {
 	ID         int            `json:"id" gorm:"primarykey"`
+	UUID       string         `json:"task_id" gorm:"type:varchar(100);index"`
+	BatchID    string         `json:"batch_id" grom:"varchar(100);index"`
 	CommandID  int            `json:"command_id" gorm:"type:int"`
+	Output     string         `json:"output" gorm:"type:text"`
 	TaskOption TaskOption     `gorm:"type:varchar(100);embedded"`
 	CreatedAt  time.Time      `json:"created_at"`
 	UpdatedAt  time.Time      `json:"updated_at"`
@@ -39,7 +49,7 @@ type SendFileTaskInfo struct {
 	gorm.Model
 	Content     string     `json:"content" gorm:"type:longtext"`
 	ContentType string     `json:"contentType" gorm:"type:varchar(100)"`
-	Destination string     `json:"destination" gorm:"type:varchar(1024);`
+	Destination string     `json:"destination" gorm:"type:varchar(1024)"`
 	Group       string     `json:"group" gorm:"type:varchar(256);"`
 	Mode        string     `json:"mode" gorm:"type:varchar(256);"`
 	Name        string     `json:"name" gorm:"type:varchar(256);"`
@@ -96,10 +106,20 @@ func GetTaskByID(taskID string) *Task {
 	return &task
 }
 
+func GetTaskByUUID(taskUUID string) *Task {
+	var task Task
+	err := db.Where("uuid", taskUUID).Find(&task).Error
+	if err != nil {
+		return nil
+	}
+	return &task
+}
+
 func CreateTask(commandID int, to TaskOption) *Task {
 	var task Task
 	task.CommandID = commandID
 	task.TaskOption = to
+	task.GenTaskUUID()
 
 	err := db.Model(task).Save(&task).Error
 	if err != nil {
@@ -107,6 +127,13 @@ func CreateTask(commandID int, to TaskOption) *Task {
 		return nil
 	}
 	return &task
+}
+
+func (task *Task) GenTaskUUID() string {
+	uuid := "t-" + util.RandStringRunes(32)
+	task.UUID = uuid
+
+	return uuid
 }
 
 func (task *Task) GetCommand() *Command {
@@ -123,8 +150,9 @@ func (task *Task) GetCommand() *Command {
 func (task *Task) ParseRunTaskInfo() map[string]interface{} {
 	data := make(map[string]interface{})
 	data["task"] = map[string]interface{}{
-		"taskID":           fmt.Sprintf("%d", task.ID),
-		"commandId":        fmt.Sprintf("%d", task.CommandID),
+		"taskID":           task.UUID,
+		"commandId":        task.GetCommand().UUID,
+		"commandName":      task.GetCommand().Name,
 		"commandContent":   task.GetCommand().CommandContent,
 		"timeOut":          "60",
 		"workingDirectory": "/tmp",
@@ -141,4 +169,29 @@ func (task *Task) ParseRunTaskInfo() map[string]interface{} {
 	}
 	data["repeat"] = "Once"
 	return data
+}
+
+func (task *Task) StashOutput(content string) error {
+	stashKey := TASK_OUTPUT_STASH + task.UUID
+	ctx := context.Background()
+	redisClient := redisclient.GetClient()
+	redisClient.RPush(ctx, stashKey, content)
+	return nil
+}
+
+func (task *Task) DumpOutput() (string, error) {
+	stashKey := TASK_OUTPUT_STASH + task.UUID
+	ctx := context.Background()
+	redisClient := redisclient.GetClient()
+	outputLines, err := redisClient.LRange(ctx, stashKey, 0, -1).Result()
+	if err != nil {
+		return "", err
+	}
+	output := strings.Join(outputLines, "")
+	task.Output = output
+	err = db.Save(task).Error
+	if err != nil {
+		return "", err
+	}
+	return output, nil
 }
