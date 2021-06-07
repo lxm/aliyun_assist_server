@@ -37,6 +37,9 @@ type Task struct {
 	Output     string         `json:"output" gorm:"type:text"`
 	Status     string         `json:"string" gorm:"type:varchar(20)"`
 	TaskOption TaskOption     `gorm:"type:varchar(100);embedded"`
+	ExitCode   int            `json:"exit_code" gorm:"type:tinyint"`
+	StartedAt  time.Time      `json:"started_at"`
+	EndedAt    time.Time      `json:"ended_at"`
 	CreatedAt  time.Time      `json:"created_at"`
 	UpdatedAt  time.Time      `json:"updated_at"`
 	DeletedAt  gorm.DeletedAt `json:"-" gorm:"index"`

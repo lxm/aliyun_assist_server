@@ -1,6 +1,9 @@
 package task
 
 import (
+	"strconv"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/lxm/aliyun_assist_server/pkg/apiserver/types"
 	"github.com/lxm/aliyun_assist_server/pkg/model"
@@ -58,9 +61,9 @@ func Finish(c *gin.Context) {
 	taskID := c.Query("taskId")
 	task := model.GetTaskByUUID(taskID)
 
-	// start := c.Query("start")
-	// end := c.Query("end")
-	// exitCode := c.Query("exitCode")
+	start := c.Query("start")
+	end := c.Query("end")
+	exitCode := c.Query("exitCode")
 	// dropped := c.Query("dropped")
 	if task == nil {
 		logrus.WithFields(logrus.Fields{
@@ -77,6 +80,14 @@ func Finish(c *gin.Context) {
 		task.DumpOutput()
 	}
 	if task.Status == model.TASK_STATUS_RUNNING {
+		startedTs, _ := strconv.Atoi(start)
+		endedTs, _ := strconv.Atoi(end)
+		exitCodeint, _ := strconv.Atoi(exitCode)
+		startedTm := time.Unix(int64(startedTs), 0)
+		endedTm := time.Unix(int64(endedTs), 0)
+		task.StartedAt = startedTm
+		task.EndedAt = endedTm
+		task.ExitCode = exitCodeint
 		task.SetStatus(model.TASK_STATUS_FINISHED)
 	}
 }
