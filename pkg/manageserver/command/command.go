@@ -10,13 +10,13 @@ import (
 )
 
 type RunCommandReq struct {
-	Command     model.Command `json:"command"`
-	InstanceIDs []string      `json:"instance_ids"`
+	Command     model.Command `json:"command" binding:"required"`
+	InstanceIDs []string      `json:"instance_ids" binding:"required"`
 	Options     struct {
 		model.TaskOption
 		KeepCommand     bool   `json:"keep_command"`
-		ContentEncoding string `json:"content_encoding"`
-	} `json:"options"`
+		ContentEncoding string `json:"content_encoding" binding:"required"`
+	} `json:"options" binding:"required"`
 }
 
 func RunCommand(c *gin.Context) {

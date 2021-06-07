@@ -44,6 +44,9 @@ func Running(c *gin.Context) {
 	if len(rawData) > 0 {
 		task.StashOutput(string(rawData))
 	}
+	if task.Status == model.TASK_STATUS_PENDING {
+		task.SetStatus(model.TASK_STATUS_RUNNING)
+	}
 	c.AbortWithStatus(201)
 }
 func Finish(c *gin.Context) {
@@ -73,7 +76,9 @@ func Finish(c *gin.Context) {
 		task.StashOutput(string(rawData))
 		task.DumpOutput()
 	}
-	logrus.Infof("Task Finish:%v\n%v", string(rawData), c.Request.Header)
+	if task.Status == model.TASK_STATUS_RUNNING {
+		task.SetStatus(model.TASK_STATUS_FINISHED)
+	}
 }
 func Stopped(c *gin.Context) {
 	taskID := c.Query("taskId")

@@ -19,10 +19,13 @@ const (
 )
 
 const (
+	TASK_STATUS_PENDING  = "Pending"
 	TASK_STATUS_RUNNING  = "Running"
 	TASK_STATUS_FINISHED = "Finished"
 	TASK_STATUS_FAIELD   = "Failed"
 	TASK_STATUS_STOPPED  = "Stopped"
+	TASK_STATUS_TIMEOUT  = "Timeout"
+	TASK_STATUS_ERROR    = "Error"
 )
 
 type Task struct {
@@ -203,4 +206,9 @@ func (task *Task) DumpOutput() (string, error) {
 		return "", err
 	}
 	return output, nil
+}
+
+func (task *Task) SetStatus(status string) error {
+	task.Status = status
+	return db.Save(task).Error
 }
