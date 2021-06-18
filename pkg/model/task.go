@@ -35,11 +35,11 @@ type Task struct {
 	CommandID  int            `json:"command_id" gorm:"type:int"`
 	InstanceID string         `json:"instance_id" gorm:"type:varchar(100);index"`
 	Output     string         `json:"output" gorm:"type:text"`
-	Status     string         `json:"string" gorm:"type:varchar(20)"`
+	Status     string         `json:"string" gorm:"type:varchar(20);default:Pending"`
 	TaskOption TaskOption     `gorm:"type:varchar(100);embedded"`
 	ExitCode   int            `json:"exit_code" gorm:"type:tinyint"`
-	StartedAt  time.Time      `json:"started_at"`
-	EndedAt    time.Time      `json:"ended_at"`
+	StartedAt  *time.Time     `json:"started_at" grom:"default:NULL"`
+	EndedAt    *time.Time     `json:"ended_at" grom:"default:NULL"`
 	CreatedAt  time.Time      `json:"created_at"`
 	UpdatedAt  time.Time      `json:"updated_at"`
 	DeletedAt  gorm.DeletedAt `json:"-" gorm:"index"`

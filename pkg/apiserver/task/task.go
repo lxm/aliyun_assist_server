@@ -34,6 +34,14 @@ func List(c *gin.Context) {
 func Running(c *gin.Context) {
 	taskID := c.Query("taskId")
 	task := model.GetTaskByUUID(taskID)
+	start := c.Query("start")
+	startedTs, err := strconv.Atoi(start)
+	logrus.Infof("start:%v", startedTs)
+	if err != nil {
+		logrus.Errorf("parse start ts error: %v", err)
+	}
+	startedTm := time.Unix(int64(startedTs), 0)
+
 	if task == nil {
 		logrus.WithFields(logrus.Fields{
 			"Module": "task",
@@ -48,6 +56,7 @@ func Running(c *gin.Context) {
 		task.StashOutput(string(rawData))
 	}
 	if task.Status == model.TASK_STATUS_PENDING {
+		task.StartedAt = &startedTm
 		task.SetStatus(model.TASK_STATUS_RUNNING)
 	}
 	c.AbortWithStatus(201)
@@ -85,8 +94,8 @@ func Finish(c *gin.Context) {
 		exitCodeint, _ := strconv.Atoi(exitCode)
 		startedTm := time.Unix(int64(startedTs), 0)
 		endedTm := time.Unix(int64(endedTs), 0)
-		task.StartedAt = startedTm
-		task.EndedAt = endedTm
+		task.StartedAt = &startedTm
+		task.EndedAt = &endedTm
 		task.ExitCode = exitCodeint
 		task.SetStatus(model.TASK_STATUS_FINISHED)
 	}
