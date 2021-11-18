@@ -17,6 +17,8 @@ func Detect(c *gin.Context) {}
 func Gshell(c *gin.Context) {}
 
 func HeartBeat(c *gin.Context) {
+	instanceID := c.GetString("checked-instance-id")
+	logrus.Infof("HeartBeat:%v", instanceID)
 	resp := types.HeartBeatResp{
 		NextInterval: 10,
 		NewTasks:     false,

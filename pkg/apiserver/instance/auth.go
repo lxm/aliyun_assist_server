@@ -14,7 +14,6 @@ func CheckHeaderMiddleware(c *gin.Context) {
 	timestamp := c.GetHeader("x-acs-timestamp")
 	requestID := c.GetHeader("x-acs-request-id")
 	signature := c.GetHeader("x-acs-signature")
-
 	regInfo := model.GetRegisterInfo(instanceID)
 	if regInfo != nil && regInfo.ID != 0 {
 		mid := regInfo.MachineId

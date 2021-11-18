@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"database/sql/driver"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"strings"
@@ -31,11 +32,11 @@ const (
 type Task struct {
 	ID         int            `json:"id" gorm:"primarykey"`
 	UUID       string         `json:"task_id" gorm:"type:varchar(100);index"`
-	BatchID    string         `json:"batch_id" grom:"varchar(100);index"`
+	InvokeID   string         `json:"invoke_id" grom:"type:varchar(100);index"`
 	CommandID  int            `json:"command_id" gorm:"type:int"`
 	InstanceID string         `json:"instance_id" gorm:"type:varchar(100);index"`
 	Output     string         `json:"output" gorm:"type:text"`
-	Status     string         `json:"string" gorm:"type:varchar(20);default:Pending"`
+	Status     string         `json:"status" gorm:"type:varchar(20);default:Pending"`
 	TaskOption TaskOption     `gorm:"type:varchar(100);embedded"`
 	ExitCode   int            `json:"exit_code" gorm:"type:tinyint"`
 	StartedAt  *time.Time     `json:"started_at" grom:"default:NULL"`
@@ -129,11 +130,12 @@ func GetTaskByUUID(taskUUID string) *Task {
 	return &task
 }
 
-func CreateTask(commandID int, instanceId string, to TaskOption) *Task {
+func CreateTask(commandID int, instanceId, invokeID string, to TaskOption) *Task {
 	var task Task
 	task.CommandID = commandID
 	task.InstanceID = instanceId
 	task.TaskOption = to
+	task.InvokeID = invokeID
 	task.GenTaskUUID()
 
 	err := db.Model(task).Save(&task).Error
@@ -199,11 +201,14 @@ func (task *Task) DumpOutput() (string, error) {
 	ctx := context.Background()
 	redisClient := redisclient.GetClient()
 	outputLines, err := redisClient.LRange(ctx, stashKey, 0, -1).Result()
+	redisClient.Expire(ctx, stashKey, 3600*time.Second) // keep result for 1 hour
 	if err != nil {
 		return "", err
 	}
 	output := strings.Join(outputLines, "")
-	task.Output = output
+	outputBase64 := base64.StdEncoding.EncodeToString([]byte(output))
+	task.Output = outputBase64
+
 	err = db.Save(task).Error
 	if err != nil {
 		return "", err
@@ -214,4 +219,10 @@ func (task *Task) DumpOutput() (string, error) {
 func (task *Task) SetStatus(status string) error {
 	task.Status = status
 	return db.Save(task).Error
+}
+
+func ListTasksByInvokeIDs(invokeIDs []string) ([]*Task, error) {
+	var tasks []*Task
+	err := db.Where("invoke_id in ?", invokeIDs).Find(&tasks).Error
+	return tasks, err
 }

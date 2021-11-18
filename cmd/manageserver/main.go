@@ -9,6 +9,5 @@ func main() {
 	model.ConnectDB()
 	model.Migrate()
 	router := manageserver.InitRouter()
-	// router.
 	router.Run("0.0.0.0:18080")
 }

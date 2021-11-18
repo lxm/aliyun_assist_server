@@ -39,8 +39,9 @@ func connect() error {
 		mysql.Config{
 			DSN: dsn,
 		}),
-		&gorm.Config{})
-
+		&gorm.Config{
+			// Logger: logger.Default.LogMode(logger.Info),
+		})
 	if err != nil {
 		logrus.Errorf("ConnectDB error %v", err)
 		return err
@@ -55,5 +56,5 @@ func GetDB() *gorm.DB {
 }
 
 func Migrate() {
-	db.AutoMigrate(&RegisterInfo{}, &Command{}, &Task{})
+	db.AutoMigrate(&RegisterInfo{}, &Command{}, &Task{}, &ActivationCode{})
 }

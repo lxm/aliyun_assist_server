@@ -11,5 +11,6 @@ func main() {
 	model.Migrate()
 	// return
 	router := apiserver.InitRouter()
-	router.RunTLS("0.0.0.0:443", "./aliyun-selfhosted.qingjiao.io.pem", "./aliyun-selfhosted.qingjiao.io-key.pem")
+	router.Run("0.0.0.0:10081")
+	// router.RunTLS("0.0.0.0:443", "./aliyun-server.localdev02.qingjiao.link", "./aliyun-server.localdev02.qingjiao.link-key")
 }

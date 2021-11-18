@@ -22,6 +22,22 @@ func Reg(c *gin.Context) {
 		return
 	} else {
 		instanceID := regInfo.GenInstanceID()
+		code := regInfo.ActivationCode
+		logrus.Infof("code:%v", code)
+		ac, instanceName, err := model.CheckActivationCode(code)
+		if ac == nil {
+			c.JSON(400, gin.H{
+				"message": "invaild active code",
+			})
+			return
+		}
+		if err != nil {
+			c.JSON(400, gin.H{
+				"message": err.Error(),
+			})
+			return
+		}
+		regInfo.InstanceName = instanceName
 		model.GetDB().Save(&regInfo)
 
 		c.JSON(200, gin.H{

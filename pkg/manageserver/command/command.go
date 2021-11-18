@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lxm/aliyun_assist_server/pkg/model"
 	"github.com/lxm/aliyun_assist_server/pkg/redisclient"
+	"github.com/lxm/aliyun_assist_server/pkg/util"
 )
 
 type RunCommandReq struct {
@@ -36,18 +37,24 @@ func RunCommand(c *gin.Context) {
 		})
 		return
 	}
-	// invokeId := util.RandStringRunes(32)
+	invokeId := "t-" + util.RandStringRunes(16)
 
 	redisClient := redisclient.GetClient()
 
 	ctx := context.Background()
 	for _, instanceID := range runCmdReq.InstanceIDs {
-		task := model.CreateTask(runCmdReq.Command.ID, instanceID, runCmdReq.Options.TaskOption)
+		task := model.CreateTask(runCmdReq.Command.ID, instanceID, invokeId, runCmdReq.Options.TaskOption)
 		channel := "notify_server:" + instanceID
 		msg := fmt.Sprintf("kick_vm task run %s", task.UUID)
 		redisClient.Publish(ctx, channel, msg)
 	}
 
-	c.JSON(200, runCmdReq)
+	c.JSON(200, gin.H{
+		"command_id": runCmdReq.Command.ID,
+		"invoke_id":  invokeId,
+	})
 
+}
+
+func InvokeCommand(c *gin.Context) {
 }

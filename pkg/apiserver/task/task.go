@@ -40,7 +40,7 @@ func Running(c *gin.Context) {
 	if err != nil {
 		logrus.Errorf("parse start ts error: %v", err)
 	}
-	startedTm := time.Unix(int64(startedTs), 0)
+	startedTm := time.Unix(int64(startedTs/1000), int64(startedTs%1000))
 
 	if task == nil {
 		logrus.WithFields(logrus.Fields{
@@ -88,17 +88,15 @@ func Finish(c *gin.Context) {
 		task.StashOutput(string(rawData))
 		task.DumpOutput()
 	}
-	if task.Status == model.TASK_STATUS_RUNNING {
-		startedTs, _ := strconv.Atoi(start)
-		endedTs, _ := strconv.Atoi(end)
-		exitCodeint, _ := strconv.Atoi(exitCode)
-		startedTm := time.Unix(int64(startedTs), 0)
-		endedTm := time.Unix(int64(endedTs), 0)
-		task.StartedAt = &startedTm
-		task.EndedAt = &endedTm
-		task.ExitCode = exitCodeint
-		task.SetStatus(model.TASK_STATUS_FINISHED)
-	}
+	startedTs, _ := strconv.Atoi(start)
+	endedTs, _ := strconv.Atoi(end)
+	exitCodeint, _ := strconv.Atoi(exitCode)
+	startedTm := time.Unix(int64(startedTs/1000), int64(startedTs%1000))
+	endedTm := time.Unix(int64(startedTs/1000), int64(endedTs%1000))
+	task.StartedAt = &startedTm
+	task.EndedAt = &endedTm
+	task.ExitCode = exitCodeint
+	task.SetStatus(model.TASK_STATUS_FINISHED)
 }
 func Stopped(c *gin.Context) {
 	taskID := c.Query("taskId")
@@ -107,7 +105,7 @@ func Stopped(c *gin.Context) {
 	if task == nil {
 		logrus.WithFields(logrus.Fields{
 			"Module": "task",
-			"Func":   "Finish",
+			"Func":   "Stopped",
 		}).Errorf("Get task failed by taskId:%s", taskID)
 		c.AbortWithStatus(200)
 		return
