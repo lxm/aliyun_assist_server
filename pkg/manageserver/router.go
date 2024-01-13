@@ -9,10 +9,10 @@ import (
 	"github.com/lxm/aliyun_assist_server/pkg/model"
 )
 
-func InitRouter() *gin.Engine {
-	r := gin.New()
+func InitRouter(prefix string, r *gin.Engine) *gin.Engine {
 	model.ConnectDB()
-	manageGroup := r.Group("/")
+	r.RemoveExtraSlash = true
+	manageGroup := r.Group(prefix)
 
 	//TODO command manage
 	// manageGroup.POST("/command")

@@ -30,11 +30,11 @@ const (
 /luban/api/instance/register
 /luban/api/instance/deregister
 */
-func InitRouter() *gin.Engine {
-	r := gin.New()
-	r.Use(gin.Logger())
+func InitRouter(prefix string, r *gin.Engine) *gin.Engine {
 
-	lubanGroup := r.Group("/luban", instance.CheckHeaderMiddleware)
+	r.Use(gin.Logger())
+	r.RemoveExtraSlash = true
+	lubanGroup := r.Group(prefix+"/luban", instance.CheckHeaderMiddleware)
 
 	lubanGroup.GET("/notify_server", connection.NotifyServer)
 	lubanGroup.POST(URI_PREFIX+"/v1/update/update_check", update.Check)

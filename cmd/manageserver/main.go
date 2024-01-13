@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/lxm/aliyun_assist_server/pkg/manageserver"
 	"github.com/lxm/aliyun_assist_server/pkg/model"
 )
@@ -8,6 +9,7 @@ import (
 func main() {
 	model.ConnectDB()
 	model.Migrate()
-	router := manageserver.InitRouter()
-	router.Run("0.0.0.0:18080")
+	r := gin.New()
+	manageserver.InitRouter("/", r)
+	r.Run("0.0.0.0:18080")
 }
