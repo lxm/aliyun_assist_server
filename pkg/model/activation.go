@@ -10,7 +10,7 @@ import (
 type ActivationCode struct {
 	ID               int    `json:"id" gorm:"primarykey"`
 	Code             string `json:"code" gorm:"type:varchar(100);uniqueIndex"`
-	NamePrefix       string `json:"name_prefix" gorm:"varchar(50);uniqueIndex"`
+	NamePrefix       string `json:"name_prefix" gorm:"varchar(50);uniqueIndex;size:50"`
 	ActiveCountLimit int    `json:"active_count_limit"`
 	ActiveCountUsed  int    `json:"active_count_used"`
 	Expire           int    `json:"expire"`
