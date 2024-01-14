@@ -130,6 +130,15 @@ func GetTaskByUUID(taskUUID string) *Task {
 	return &task
 }
 
+func GetTasksByStatus(status string) []*Task {
+	var tasks []*Task
+	err := db.Where("status", status).Find(&tasks).Error
+	if err != nil {
+		return nil
+	}
+	return tasks
+}
+
 func CreateTask(commandID int, instanceId, invokeID string, to TaskOption) *Task {
 	var task Task
 	task.CommandID = commandID

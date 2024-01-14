@@ -20,10 +20,18 @@ func List(c *gin.Context) {
 
 	reason := c.Query("reason")
 	taskID := c.Query("taskId")
+	// /luban/api/v1/task/list?reason=startup&cold_start=false&currentTime=1705215296562&offset=0&timeZone=Etc%2FUTC
 	logrus.Infof("taskId:%v", taskID)
 	if reason == "kickoff" {
 		task := model.GetTaskByUUID(taskID)
 		if task != nil {
+			taskList.RunTasks = append(taskList.RunTasks, task.ParseRunTaskInfo())
+		}
+	}
+
+	if reason == "startup" {
+		tasks := model.GetTasksByStatus(model.TASK_STATUS_PENDING)
+		for _, task := range tasks {
 			taskList.RunTasks = append(taskList.RunTasks, task.ParseRunTaskInfo())
 		}
 	}
