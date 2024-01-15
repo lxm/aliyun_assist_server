@@ -9,5 +9,6 @@ type TaskListResp struct {
 	RunTasks      []interface{} `json:"run"`
 	StopTasks     []interface{} `json:"stop"`
 	SendFileTasks []interface{} `json:"file"`
+	SessionTasks  []interface{} `json:"session"`
 	InstanceId    string        `json:"instanceId"`
 }

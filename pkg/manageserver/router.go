@@ -6,6 +6,7 @@ import (
 	"github.com/lxm/aliyun_assist_server/pkg/manageserver/activation"
 	"github.com/lxm/aliyun_assist_server/pkg/manageserver/command"
 	"github.com/lxm/aliyun_assist_server/pkg/manageserver/invocation"
+	"github.com/lxm/aliyun_assist_server/pkg/manageserver/session"
 	"github.com/lxm/aliyun_assist_server/pkg/model"
 )
 
@@ -26,6 +27,7 @@ func InitRouter(prefix string, r *gin.Engine) *gin.Engine {
 
 	// manageGroup.GET("/invocations", invocation.ListInvocations)
 	manageGroup.GET("/invocationresults", invocation.ListInvocationResults)
+	manageGroup.POST("/session/start", session.StartSession)
 
 	//TODO sendfile
 	// manageGroup.POST("/sendfile")

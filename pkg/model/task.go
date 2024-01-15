@@ -76,6 +76,17 @@ type SendFileTaskInfo struct {
 	Output      OutputInfo `json:"output" gorm:"column:output;type:longtext"`
 }
 
+type SessionTaskInfo struct {
+	CmdContent   string `json:"cmdContent"`
+	Username     string `json:"username"`
+	Password     string `json:"windowsPasswordName"`
+	SessionId    string `json:"channelId"`
+	WebsocketUrl string `json:"websocketUrl"`
+	TargetHost   string `json:"targetHost"`
+	PortNumber   string `json:"portNumber"`
+	FlowLimit    int    `json:"flowLimit"` // 最大流量 单位 bps
+}
+
 type GshellCmd struct {
 	Execute   string `json:"execute"`
 	Arguments struct {
@@ -194,6 +205,11 @@ func (task *Task) ParseRunTaskInfo() map[string]interface{} {
 		"interval":  1,
 	}
 	data["repeat"] = "Once"
+	return data
+}
+
+func (task *Task) ParseSessionTaskInfo() map[string]interface{} {
+	data := make(map[string]interface{})
 	return data
 }
 

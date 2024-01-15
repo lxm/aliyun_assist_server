@@ -14,6 +14,9 @@ func main() {
 	// return
 	r := gin.New()
 	apiserver.InitRouter("/", r)
+	go func() {
+		r.RunTLS("0.0.0.0:10083", "./docker.for.mac.localhost.pem", "./docker.for.mac.localhost-key.pem")
+
+	}()
 	r.Run("0.0.0.0:10081")
-	// router.RunTLS("0.0.0.0:443", "./aliyun-server.localdev02.qingjiao.link", "./aliyun-server.localdev02.qingjiao.link-key")
 }
