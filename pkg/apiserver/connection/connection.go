@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/lxm/aliyun_assist_server/pkg/apiserver/types"
+	"github.com/lxm/aliyun_assist_server/pkg/model"
 	"github.com/lxm/aliyun_assist_server/pkg/redisclient"
 	"github.com/sirupsen/logrus"
 )
@@ -29,6 +30,10 @@ func HeartBeat(c *gin.Context) {
 func NotifyServer(c *gin.Context) {
 	instanceID := c.GetString("checked-instance-id")
 	logrus.Infof("NotifyServer-Start serve ws for instance: %v", instanceID)
+	instance := model.GetIntanceByID(instanceID)
+	if instance == nil {
+		logrus.Errorf("NotifyServer instance not found with instance id: [%s]", instanceID)
+	}
 	conn := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			return true
@@ -43,6 +48,7 @@ func NotifyServer(c *gin.Context) {
 	redisClient := redisclient.GetClient()
 	var writeMu sync.Mutex
 	//Process msg
+	instance.SetOnline()
 	go func() {
 		ctx := context.Background()
 		pubsub := redisClient.Subscribe(ctx, "notify_server:"+instanceID)
@@ -72,6 +78,7 @@ func NotifyServer(c *gin.Context) {
 		logrus.Errorf("NotifyServer serve ws failed: %v", err)
 	}
 	wsQuit <- 1
+	instance.SetOffline()
 	logrus.Infof("NotifyServer-End serve ws for instance: %v", instanceID)
 }
 

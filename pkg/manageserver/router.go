@@ -29,7 +29,7 @@ func InitRouter() *gin.Engine {
 
 	//TODO sendfile
 	// manageGroup.POST("/sendfile")
-	// manageGroup.GET("/instance")
+	manageGroup.GET("/instance")
 
 	return r
 }
