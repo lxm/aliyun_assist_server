@@ -2,6 +2,7 @@ package invocation
 
 import (
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lxm/aliyun_assist_server/pkg/model"
@@ -25,6 +26,11 @@ func ListInvocationResults(c *gin.Context) {
 	}
 
 	tasks, err := model.ListTasksByInvokeIDs(invokeIDs)
+	for k, task := range tasks {
+		if task.Status == model.TASK_STATUS_PENDING && time.Now().Add(-time.Minute*30).After(task.CreatedAt) {
+			tasks[k].Status = model.TASK_STATUS_FAIELD
+		}
+	}
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message": err.Error(),

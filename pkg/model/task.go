@@ -6,9 +6,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/lxm/aliyun_assist_server/pkg/redisclient"
 	"github.com/lxm/aliyun_assist_server/pkg/util"
 	"github.com/sirupsen/logrus"
@@ -234,4 +236,28 @@ func ListTasksByInvokeIDs(invokeIDs []string) ([]*Task, error) {
 	var tasks []*Task
 	err := db.Where("invoke_id in ?", invokeIDs).Find(&tasks).Error
 	return tasks, err
+}
+
+func ListInstancePendingTasks(instanceID string) ([]*Task, error) {
+	var tasks []*Task
+	err := db.Where("instance_id = ? and status = ?", instanceID, TASK_STATUS_PENDING).Find(&tasks).Error
+	return tasks, err
+}
+
+func (task *Task) KickMsg() string {
+	msg := fmt.Sprintf("kick_vm task run %s", task.UUID)
+	return msg
+}
+
+func (task *Task) NotifyChannel() string {
+	channel := "notify_server:" + task.InstanceID
+	return channel
+}
+
+func (task *Task) SendKickMsg(redisClient *redis.Client) (num int64, err error) {
+	ctx := context.Background()
+	msg := task.KickMsg()
+	channel := task.NotifyChannel()
+	num, err = redisClient.Publish(ctx, channel, msg).Result()
+	return
 }

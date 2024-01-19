@@ -2,7 +2,6 @@ package command
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lxm/aliyun_assist_server/pkg/model"
@@ -45,8 +44,11 @@ func RunCommand(c *gin.Context) {
 	for _, instanceID := range runCmdReq.InstanceIDs {
 		task := model.CreateTask(runCmdReq.Command.ID, instanceID, invokeId, runCmdReq.Options.TaskOption)
 		channel := "notify_server:" + instanceID
-		msg := fmt.Sprintf("kick_vm task run %s", task.UUID)
-		redisClient.Publish(ctx, channel, msg)
+		msg := task.KickMsg()
+		num, err := redisClient.Publish(ctx, channel, msg).Result()
+		if err == nil && num == 0 {
+			redisClient.SAdd(ctx, channel+"no_sub", msg)
+		}
 	}
 
 	c.JSON(200, gin.H{

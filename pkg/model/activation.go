@@ -10,6 +10,7 @@ import (
 type ActivationCode struct {
 	ID               int    `json:"id" gorm:"primarykey"`
 	Code             string `json:"code" gorm:"type:varchar(100);uniqueIndex"`
+	InstanceID       string `json:"instance_id" gorm:"type:varchar(50);index"`
 	NamePrefix       string `json:"name_prefix" gorm:"varchar(50);uniqueIndex;size:50"`
 	ActiveCountLimit int    `json:"active_count_limit"`
 	ActiveCountUsed  int    `json:"active_count_used"`
@@ -19,12 +20,16 @@ type ActivationCode struct {
 
 func CreateActivationCode(namePrefix, description string, activeCountLimit, expire int) (*ActivationCode, error) {
 	code := "a-" + util.RandStringRunes(10)
+
 	ac := &ActivationCode{
 		Code:             code,
 		NamePrefix:       namePrefix,
 		ActiveCountLimit: activeCountLimit,
 		Expire:           expire,
 		Description:      description,
+	}
+	if activeCountLimit == 1 {
+		ac.InstanceID = "i-" + util.RandStringRunes(16)
 	}
 	err := db.Create(&ac).Error
 	return ac, err

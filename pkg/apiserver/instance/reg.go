@@ -21,9 +21,24 @@ func Reg(c *gin.Context) {
 		})
 		return
 	} else {
-		instanceID := regInfo.GenInstanceID()
 		code := regInfo.ActivationCode
-		logrus.Infof("code:%v", code)
+		// logrus.Infof("code:%v", code)
+		// get exist reginfo
+		existRegInfos := model.GetRegisterInfoByActivactionCode(code)
+		if len(*existRegInfos) == 1 {
+			existRegInfo := (*existRegInfos)[0]
+			existRegInfo.PublicKeyBase64 = regInfo.PublicKeyBase64
+			existRegInfo.MachineId = regInfo.MachineId
+			existRegInfo.Hostname = regInfo.Hostname
+			existRegInfo.InstanceName = regInfo.InstanceName
+			existRegInfo.IntranetIp = regInfo.IntranetIp
+			model.GetDB().Model(&model.RegisterInfo{}).Where("id = ?", existRegInfo.ID).Updates(existRegInfo)
+			c.JSON(200, gin.H{
+				"code":       200,
+				"instanceId": existRegInfo.InstanceID,
+			})
+			return
+		}
 		ac, instanceName, err := model.CheckActivationCode(code)
 		if ac == nil {
 			c.JSON(400, gin.H{
@@ -37,12 +52,17 @@ func Reg(c *gin.Context) {
 			})
 			return
 		}
+		if ac.ActiveCountLimit == 1 && len(ac.InstanceID) > 0 {
+			regInfo.InstanceID = ac.InstanceID
+		} else {
+			regInfo.GenInstanceID()
+		}
 		regInfo.InstanceName = instanceName
 		model.GetDB().Save(&regInfo)
 
 		c.JSON(200, gin.H{
 			"code":       200,
-			"instanceId": instanceID,
+			"instanceId": regInfo.InstanceID,
 		})
 		return
 	}

@@ -7,6 +7,7 @@ import (
 
 func LoadConfig() {
 	viper.SetConfigName("config")
+	viper.SetConfigType("json")
 	viper.AddConfigPath(".")
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
