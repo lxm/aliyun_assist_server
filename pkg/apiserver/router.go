@@ -4,9 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lxm/aliyun_assist_server/pkg/apiserver/connection"
 	"github.com/lxm/aliyun_assist_server/pkg/apiserver/instance"
+	"github.com/lxm/aliyun_assist_server/pkg/apiserver/metrics"
 	"github.com/lxm/aliyun_assist_server/pkg/apiserver/task"
 	"github.com/lxm/aliyun_assist_server/pkg/apiserver/update"
-	_ "github.com/lxm/aliyun_assist_server/pkg/config"
 )
 
 const (
@@ -41,6 +41,7 @@ func InitRouter(prefix string, r *gin.Engine) *gin.Engine {
 	lubanGroup.POST(URI_PREFIX+"/v1/exception/client_report", connection.ExceptionClientReport)
 	lubanGroup.GET(URI_PREFIX+"/heart-beat", connection.HeartBeat)
 	lubanGroup.POST(URI_PREFIX+"/instance/register", instance.Reg)
+	lubanGroup.POST(URI_PREFIX+"/metrics", metrics.Report)
 
 	apiGroupTask := lubanGroup.Group(URI_PREFIX + "/v1/task")
 	apiGroupTask.POST("/list", task.List)

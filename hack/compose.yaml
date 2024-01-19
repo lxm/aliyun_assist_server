@@ -1,0 +1,15 @@
+services:
+  mysql:
+    image: mysql:8.2.0
+    environment:
+      MYSQL_ROOT_PASSWORD: assistManagePass123
+      MYSQL_DATABASE: assist_manage
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - 13306:3306
+  redis:
+    image: redis:7.2.3
+    ports:
+      - 16379:6379
+    environment:
+      REDIS_PASSWORD: assistManageRedisPass123
