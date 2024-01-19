@@ -21,6 +21,9 @@ func InitRouter(prefix string, r *gin.Engine) *gin.Engine {
 	// manageGroup.PUT("/command/:id")
 
 	manageGroup.POST("/activationcode", activation.CreateActivationCode)
+	manageGroup.GET("/activationcode/:code/instances", activation.GetInstancesByActivationCode)
+	manageGroup.GET("/activationcode/instances", activation.BatchGetInstancesByActivationCode)
+
 	manageGroup.POST("/command/:id/invoke", command.InvokeCommand)
 	manageGroup.POST("/command/run", command.RunCommand)
 

@@ -19,10 +19,27 @@ func Gshell(c *gin.Context) {}
 
 func HeartBeat(c *gin.Context) {
 	instanceID := c.GetString("checked-instance-id")
-	logrus.Infof("HeartBeat:%v", instanceID)
+	// logrus.Infof("HeartBeat:%v", instanceID)
+	// get pengding tasks
+	pendingTasks, err := model.ListInstancePendingTasks(instanceID)
+	newTasks := false
+	var nextInterval float64 = 10
+	if err != nil {
+		logrus.Errorf("HeartBeat get pending tasks failed: %v", err)
+	} else {
+		if len(pendingTasks) > 0 {
+			redisClient := redisclient.GetClient()
+			for _, task := range pendingTasks {
+				num, err := task.SendKickMsg(redisClient)
+				logrus.Infof("send kick msg to %v, num:%v, err: %v", task.InstanceID, num, err)
+			}
+			nextInterval = (float64)(10 * len(pendingTasks))
+			newTasks = true
+		}
+	}
 	resp := types.HeartBeatResp{
-		NextInterval: 10,
-		NewTasks:     false,
+		NextInterval: nextInterval,
+		NewTasks:     newTasks,
 	}
 	c.JSON(200, resp)
 }
@@ -52,6 +69,7 @@ func NotifyServer(c *gin.Context) {
 	go func() {
 		ctx := context.Background()
 		pubsub := redisClient.Subscribe(ctx, "notify_server:"+instanceID)
+		// send <- struct{}{}
 		defer pubsub.Close()
 	msgProcess:
 		for msg := range pubsub.Channel() {
@@ -67,6 +85,7 @@ func NotifyServer(c *gin.Context) {
 			}
 		}
 	}()
+
 	for {
 		mt, message, err := ws.ReadMessage()
 		if err != nil {

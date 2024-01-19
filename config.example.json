@@ -1,15 +1,15 @@
 {
     "db": {
-        "host": "10.10.139.5",
-        "port": "3306",
-        "database": "aliyun_assist",
-        "username": "root",
-        "password": "123456"
+        "host": "${DB_HOST:127.0.0.1}",
+        "port": "${DB_PORT:3306}",
+        "database": "${DB_DATABASE:aliyun_assist}",
+        "username": "${DB_USERNAME:root}",
+        "password": "${DB_PASSWORD:123456}"
     },
     "redis": {
-        "host": "127.0.0.1",
-        "port": "6379",
-        "database": "0",
-        "password": ""
+        "host": "${REDIS_HOST:127.0.0.1}",
+        "port": "${REDIS_PORT:6379}",
+        "database": "${REDIS_DB:0}",
+        "password": "${REDIS_PASSWORD:}"
     }
 }

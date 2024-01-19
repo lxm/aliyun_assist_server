@@ -30,7 +30,25 @@ func GetRegisterInfo(instanceID string) *RegisterInfo {
 	return &regInfo
 }
 
+func GetRegisterInfoByActivactionCode(code string) *[]RegisterInfo {
+	var regInfo []RegisterInfo
+	err := GetDB().Where("activation_code", code).Find(&regInfo).Error
+	if err != nil {
+		return nil
+	}
+	return &regInfo
+}
+
 func (r *RegisterInfo) GenInstanceID() string {
 	r.InstanceID = "i-" + util.RandStringRunes(16)
 	return r.InstanceID
+}
+
+func BatchGetRegisterInfoByActivactionCode(codes []string) *[]RegisterInfo {
+	var regInfo []RegisterInfo
+	err := GetDB().Where("activation_code in (?)", codes).Find(&regInfo).Error
+	if err != nil {
+		return nil
+	}
+	return &regInfo
 }

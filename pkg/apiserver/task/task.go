@@ -1,13 +1,20 @@
 package task
 
 import (
+	"context"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lxm/aliyun_assist_server/pkg/apiserver/types"
 	"github.com/lxm/aliyun_assist_server/pkg/model"
+	"github.com/lxm/aliyun_assist_server/pkg/redisclient"
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	FetchOnKickoff string = "kickoff"
+	FetchOnStartup string = "startup"
 )
 
 func Invalid(c *gin.Context) {}
@@ -20,11 +27,32 @@ func List(c *gin.Context) {
 
 	reason := c.Query("reason")
 	taskID := c.Query("taskId")
-	// /luban/api/v1/task/list?reason=startup&cold_start=false&currentTime=1705215296562&offset=0&timeZone=Etc%2FUTC
-	logrus.Infof("taskId:%v", taskID)
-	if reason == "kickoff" {
+
+	//debug
+	logrus.Infof("taskId:%v reason:%v", taskID, reason)
+
+	if reason == FetchOnKickoff {
 		task := model.GetTaskByUUID(taskID)
 		if task != nil {
+			taskList.RunTasks = append(taskList.RunTasks, task.ParseRunTaskInfo())
+		}
+	} else if reason == FetchOnStartup {
+		defer func() {
+			instanceID := c.GetHeader("x-acs-instance-id")
+			ctx := context.Background()
+			redisClient := redisclient.GetClient()
+			channel := "notify_server:" + instanceID
+			msgs, _ := redisClient.SMembers(ctx, channel+"no_sub").Result()
+			for _, msg := range msgs {
+				redisClient.Publish(ctx, channel, msg).Result()
+			}
+			redisClient.Del(ctx, channel+"no_sub")
+		}()
+	}
+
+	if reason == "startup" {
+		tasks := model.GetTasksByStatus(model.TASK_STATUS_PENDING)
+		for _, task := range tasks {
 			taskList.RunTasks = append(taskList.RunTasks, task.ParseRunTaskInfo())
 		}
 	}
