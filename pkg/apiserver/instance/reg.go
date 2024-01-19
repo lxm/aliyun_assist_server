@@ -52,10 +52,17 @@ func Reg(c *gin.Context) {
 			})
 			return
 		}
-		if ac.ActiveCountLimit == 1 && len(ac.InstanceID) > 0 {
-			regInfo.InstanceID = ac.InstanceID
-		} else {
-			regInfo.GenInstanceID()
+		for _, tag := range regInfo.Tag {
+			if tag.Key == "setid-"+ac.Code {
+				regInfo.InstanceID = tag.Value
+			}
+		}
+		if len(regInfo.InstanceID) == 0 {
+			if ac.ActiveCountLimit == 1 && len(ac.InstanceID) > 0 {
+				regInfo.InstanceID = ac.InstanceID
+			} else {
+				regInfo.GenInstanceID()
+			}
 		}
 		regInfo.InstanceName = instanceName
 		model.GetDB().Save(&regInfo)

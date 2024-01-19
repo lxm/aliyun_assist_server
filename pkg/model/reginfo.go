@@ -18,7 +18,13 @@ type RegisterInfo struct {
 	ClientVersion   string `json:"agentVersion" gorm:"type:varchar(256)"`
 	PublicKeyBase64 string `json:"publicKey" gorm:"type:varchar(3000)"`
 	InstanceID      string `json:"InstanceId" gorm:"type:varchar(256);index"`
-	ActivationID    string `json:"activationId" bgorm:"type:varchar(256);index"`
+	ActivationID    string `json:"activationId" gorm:"type:varchar(256);index"`
+	Tag             []Tag  `json:"tag" gorm:"-"`
+}
+
+type Tag struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 func GetRegisterInfo(instanceID string) *RegisterInfo {
