@@ -30,9 +30,8 @@ const (
 /luban/api/instance/register
 /luban/api/instance/deregister
 */
-func InitRouter(prefix string, r *gin.Engine) *gin.Engine {
-
-	r.Use(gin.Logger())
+func InitRouter(prefix string, r *gin.Engine, middleware ...gin.HandlerFunc) *gin.Engine {
+	r.Use(middleware...)
 	r.RemoveExtraSlash = true
 	lubanGroup := r.Group(prefix+"/luban", instance.CheckHeaderMiddleware)
 

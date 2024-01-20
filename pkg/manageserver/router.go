@@ -9,8 +9,9 @@ import (
 	"github.com/lxm/aliyun_assist_server/pkg/model"
 )
 
-func InitRouter(prefix string, r *gin.Engine) *gin.Engine {
+func InitRouter(prefix string, r *gin.Engine, middleware ...gin.HandlerFunc) *gin.Engine {
 	model.ConnectDB()
+	r.Use(middleware...)
 	r.RemoveExtraSlash = true
 	manageGroup := r.Group(prefix)
 

@@ -13,6 +13,7 @@ func main() {
 	model.Migrate()
 	// return
 	r := gin.New()
+	r.Use(gin.Logger())
 	apiserver.InitRouter("/", r)
 	go func() {
 		r.RunTLS("0.0.0.0:443", "./assist-server.lxm.local.pem", "./assist-server.lxm.local-key.pem")
